@@ -1,0 +1,88 @@
+{% load tz %} <!-- This loads the timezone filter -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Dashboard</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/employee_dashboard.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+
+<!-- Header Section -->
+<div class="header">
+    <div class="logo">
+        <img src="https://www.lorainnovations.com/assets/img/Lora.jpg" alt="LoRa IT Innovations">
+    </div>
+
+    <h1>Employee Dashboard</h1>
+
+    <!-- Profile Icon and Dropdown -->
+    <div class="profile">
+        <i class="fas fa-user profile-icon" onclick="toggleDropdown()"></i> 
+        <div class="profile-dropdown" id="profileDropdown">
+            <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+            <p><strong>Employee ID:</strong> {{ user.employee_id }}</p>
+            <!-- <a href="{% url 'logout' %}" class="logout-link">Logout</a>  -->
+            <form method="POST" action="{% url 'logout' %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="logout-link">Logout</button>
+            </form>
+            
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+    <div class="dashboard-header">
+        <h1>Welcome, {{ user.first_name }} {{ user.last_name }}</h1>
+    </div>
+
+    <div class="status-section">
+        {% if attendance %}
+            <div class="status">
+                <p>Clock In: {{ attendance.clock_in|localtime }}</p>
+                <p>Clock Out: {% if attendance.clock_out %}{{ attendance.clock_out|localtime }}{% else %}Not clocked out yet{% endif %}</p>
+            </div>
+        {% else %}
+            <div class="status">
+                <p>No clock-in record for today.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if attendance and not attendance.clock_out %}
+        <form method="post" action="{% url 'clock_out' %}">
+            {% csrf_token %}
+            <button type="submit" class="button clock-out">Clock Out</button>
+        </form>
+    {% elif not attendance %}
+        <form method="post" action="{% url 'clock_in' %}">
+            {% csrf_token %}
+            <button type="submit" class="button clock-in">Clock In</button>
+        </form>
+    {% endif %}
+</div>
+
+<script>
+    function toggleDropdown() {
+        var dropdown = document.getElementById('profileDropdown');
+        dropdown.style.display = (dropdown.style.display === 'block') ? 'none' : 'block';
+    }
+
+    // Close the dropdown if clicked outside
+    window.onclick = function(event) {
+        if (!event.target.matches('.profile, .profile *')) {
+            var dropdowns = document.getElementsByClassName("profile-dropdown");
+            for (var i = 0; i < dropdowns.length; i++) {
+                dropdowns[i].style.display = "none";
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
